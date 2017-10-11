@@ -10,24 +10,15 @@ import (
 	"google.golang.org/appengine/datastore"
 	//"google.golang.org/appengine/urlfetch"
 	"io/ioutil"
+
+	// Imports the Google Cloud BigQuery client package.
+	"cloud.google.com/go/bigquery"
+	"golang.org/x/net/context"
 )
-
-//Product bla bla
-type Product struct {
-	Name        string `json:"name"`
-	Supermarket string `json:"supermarket"`
-	Price       int64  `json:"price"`
-}
-
-func printProduct(w http.ResponseWriter, r *http.Request, p Product) {
-	fmt.Fprintf(w, "%v , ", p.Name)
-	fmt.Fprintf(w, "%v , ", p.Supermarket)
-	fmt.Fprintf(w, "%v", p.Price)
-}
 
 //Add a new item to the viewAll(w, r)
 //Virker!
-func addHandler(w http.ResponseWriter, r *http.Request) {
+/*func addHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "Old viewAll(w, r) contained: %v \n", viewAll(w, r))
 	firstValue := r.FormValue("Name")
@@ -52,10 +43,10 @@ func addHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "%v was stored i datastore!", key)
-}
+}*/
 
 //Virker
-func viewAll(w http.ResponseWriter, r *http.Request) (p []Product) {
+/*func viewAll(w http.ResponseWriter, r *http.Request) (p []Item) {
 	ctx := appengine.NewContext(r)
 	q := datastore.NewQuery("Product")
 	q = q.Order("Name")
@@ -67,22 +58,10 @@ func viewAll(w http.ResponseWriter, r *http.Request) (p []Product) {
 		return
 	}
 	return p
-}
+}*/
 
-func getAll(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	var p []Product
-	q := datastore.NewQuery("Product")
-	q = q.Order("Name")
-	_, err := q.GetAll(ctx, &p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Fprintln(w, p)
-}
 
-func decodeHandler(w http.ResponseWriter, r *http.Request) {
+/*func decodeHandler(w http.ResponseWriter, r *http.Request) {
 	var p Product
 
 	dec := json.NewDecoder(r.Body)
@@ -92,7 +71,7 @@ func decodeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "Product is %v exist in %v for %v kr.", p.Name, p.Supermarket, p.Price)
-}
+}*/
 
 func main() {
 	//mux := http.NewServeMux()
@@ -100,10 +79,7 @@ func main() {
 	//mux.HandleFunc("/", index)
 
 	http.HandleFunc("/", handler)
-
-	//mux.HandleFunc("/", handlern)
-	//mux.HandleFunc("/add", addHandler)
-	http.HandleFunc("/jsons", decodeHandler)
+	//http.HandleFunc("/jsons", decodeHandler)
 	http.ListenAndServe(":9000", nil)
 }
 
@@ -128,9 +104,25 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(ioutil.ReadAll(res.Body))
 }
 
-/*func mux() {
-	mux := http.NewServeMux()
-	mux.Handler("/", handler)
-	http.ListenAndServe(":9000", nil)
+func askBigQuery(w http.ResponseWriter, r *http.Request) {
+	firstValue, err := strconv.ParseInt(r.FormValue("northLatitude")[0:], 10, 64)
+	secondValue, err := strconv.ParseInt(r.FormValue("southLatitute")[0:], 10, 64)
+	thirdValue, err := strconv.ParseInt(r.FormValue("westLongditude")[0:], 10, 64)
+	fourthValue, err := strconv.ParseInt(r.FormValue("eastLongditude")[0:], 10, 64)
+	// and use that context to create a new http client
+	client := http.DefaultClient
+
+	//Lav url
+	url := "http://storage.googleapis.com/"
+	bucketName := "gcp-public-data-sentinel-2"
+	objectName := "/tiles/01/C/CV/S2A_MSIL1C_20151221T205519_N0201_R028_T01CCV_20160329T181515.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_N02.01/IMG_DATA/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_B02.jp2"
+	ScopeDatastore := url + bucketName + objectName
+
+	// now we can use that http client as before
+	res, err := client.Get(ScopeDatastore)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(ioutil.ReadAll(res.Body))
 }
-*/
