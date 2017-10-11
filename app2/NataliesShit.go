@@ -14,6 +14,7 @@ import (
 	// Imports the Google Cloud BigQuery client package.
 	"cloud.google.com/go/bigquery"
 	"golang.org/x/net/context"
+	"google.golang.org/api/iterator"
 )
 
 //Add a new item to the viewAll(w, r)
@@ -81,6 +82,7 @@ func main() {
 	http.HandleFunc("/", handler)
 	//http.HandleFunc("/jsons", decodeHandler)
 	http.ListenAndServe(":9000", nil)
+	http.HandleFunc("/a", askBigQuery)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -105,26 +107,48 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func askBigQuery(w http.ResponseWriter, r *http.Request) {
-	firstValue, err := strconv.ParseInt(r.FormValue("northLatitude")[0:], 10, 64)
-	secondValue, err := strconv.ParseInt(r.FormValue("southLatitute")[0:], 10, 64)
-	thirdValue, err := strconv.ParseInt(r.FormValue("westLongditude")[0:], 10, 64)
-	fourthValue, err := strconv.ParseInt(r.FormValue("eastLongditude")[0:], 10, 64)
+	firstValue := r.FormValue("northLatitude")
+	//secondValue := r.FormValue("southLatitute")
+	//thirdValue:= r.FormValue("westLongditude")
+	//fourthValue := r.FormValue("eastLongditude")
 	// and use that context to create a new http client
 	//client := http.DefaultClient
 
 	ctx := context.Background()
 
-	client, err := bigquery.NewClient(ctx, proj)
+	client, err := bigquery.NewClient(ctx, "bigquery-public-data:cloud_storage_geo_index.sentinel_2_index")
 	if err != nil {
-		return nil, err
+		fmt.Fprintf(w," no go")
 	}
 
 	query := client.Query(
-		`SELECT
-		 APPROX_TOP_COUNT(corpus, 10) as title,
-		 COUNT(*) as unique_words
-		 FROM ` + "`publicdata.samples.shakespeare`;")
+		`SELECT *
+			FROM [bigquery-public-data:cloud_storage_geo_index.sentinel_2_index]
+			WHERE north_lat =` + firstValue + `LIMIT 1000`)
 
+
+/*
+AND south_lat = ` + secondValue +`
+			AND west_lon = ` + thirdValue +`
+			AND east_lon = ` + fourthValue +`
+*/
+	// Execute the query.
+	it, err := query.Read(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	// Iterate through the results.
+	for {
+		var values []bigquery.Value
+		err := it.Next(&values)
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// TODO: Handle error.
+		}
+		fmt.Println(values)
+	}
 	//Lav url
 	url := "http://storage.googleapis.com/"
 	bucketName := "gcp-public-data-sentinel-2"
@@ -132,7 +156,7 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 	ScopeDatastore := url + bucketName + objectName
 
 	//lav query
-	q :=
+	//q :=
 
 	// now we can use that http client as before
 	res, err := client.Get(ScopeDatastore)
