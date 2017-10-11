@@ -110,13 +110,29 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 	thirdValue, err := strconv.ParseInt(r.FormValue("westLongditude")[0:], 10, 64)
 	fourthValue, err := strconv.ParseInt(r.FormValue("eastLongditude")[0:], 10, 64)
 	// and use that context to create a new http client
-	client := http.DefaultClient
+	//client := http.DefaultClient
+
+	ctx := context.Background()
+
+	client, err := bigquery.NewClient(ctx, proj)
+	if err != nil {
+		return nil, err
+	}
+
+	query := client.Query(
+		`SELECT
+		 APPROX_TOP_COUNT(corpus, 10) as title,
+		 COUNT(*) as unique_words
+		 FROM ` + "`publicdata.samples.shakespeare`;")
 
 	//Lav url
 	url := "http://storage.googleapis.com/"
 	bucketName := "gcp-public-data-sentinel-2"
 	objectName := "/tiles/01/C/CV/S2A_MSIL1C_20151221T205519_N0201_R028_T01CCV_20160329T181515.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_N02.01/IMG_DATA/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_B02.jp2"
 	ScopeDatastore := url + bucketName + objectName
+
+	//lav query
+	q :=
 
 	// now we can use that http client as before
 	res, err := client.Get(ScopeDatastore)
