@@ -1,0 +1,12 @@
+Scalability of Web systems: Assingment 01.
+
+Exercise 1:     
+The image data is stored in the JPEG 2000 format in a folder structure, such that the
+tile/granules(MGRS coordinates)/[UTM_ZONE]/[LATITUDE_BAND]/[GRID_SQUARE]/[GRANULE_ID](consisting of ) 
+each granule ID consists of a subdirectory GRANULE that contains the granules data, some of the meta data is in the file structure/name.
+
+
+Are we supposed to clone the google cloud storage into our own projects?
+How are we supposed to use index.csv in our solution
+
+how do we set up our own bucket to test on, not sure how it works, when we make our own server, through ssh.
