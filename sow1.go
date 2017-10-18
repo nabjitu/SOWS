@@ -4,8 +4,10 @@ import (
 	//"encoding/json"
 	"fmt"
 	"net/http"
-	//"strconv"
+	"strconv"
 	//"os"
+	"math"
+	"strings"
 
 	//"google.golang.org/appengine"
 	//"google.golang.org/appengine/datastore"
@@ -114,13 +116,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(ioutil.ReadAll(res.Body))
 }
 
-func makeMGRS(lat float, long float) {
+func makeMGRS(lat float64, long float64) string {
 	
-	Mgrs_latbands := `CDEFGHIJKLMNPQRSTUVWXX`
+	fmt.Printf("lat : %f",lat)
+	fmt.Printf("long : %f", long)
+	
+	//Mgrs_latbands := `CDEFGHIJKLMNPQRSTUVWXX`
+	//latbands := []rune(Mgrs_latbands)
 
-	Mgrs_e100k := [`ABCDEFGH`, `JKLMNPQR`, `STUVWXYZ`]
+	Mgrs_e100k := [3]string{`ABCDEFGH`, `JKLMNPQR`, `STUVWXYZ`}
+	//e100k := []rune(Mgrs_e100k)
 
-	Mgrs_n100k := [`ABCDEFGHJKLMNPQRSTUV`, `FGHJKLMNPQRSTUVABCDE`]
+	Mgrs_n100k := [2]string{`ABCDEFGHJKLMNPQRSTUV`, `FGHJKLMNPQRSTUVABCDE`}
+	//n100k := []rune(Mgrs_n100k)
 
 	latLon := UTM.LatLon{lat, long}
 	
@@ -138,12 +146,26 @@ func makeMGRS(lat float, long float) {
 			)*/
 		
 		zone := result.ZoneNumber
-		band := Mgrs_latbands
+		//fmt.Printf("lat: %f",lat)
+		//fmt.Printf("math: %f",math.Floor(lat/8.0+10.0))
+		band := result.ZoneLetter//latbands[int(math.Floor(lat/8.0+10.0))]
+
+		col := int(math.Floor(result.Easting / 100000))
+		e100k := Mgrs_e100k[(zone-1)%3]
+		e100kcol := e100k[col-1]
+
+		row := int(math.Floor(result.Northing / 100000))%20
+		n100k := Mgrs_n100k[(zone-1)%2]
+		n100krow := n100k[row]
+
+		//fmt.Printf("%d %s %c%c",zone, band, e100kcol, n100krow)
+		MGRS := fmt.Sprintf("%d %s %c%c",zone, band, e100kcol, n100krow)
+		return MGRS
 }
 
 func askBigQuery(w http.ResponseWriter, r *http.Request) {
-	//firstValue, err := strconv.ParseFloat(r.FormValue("Latitude"), 64)
-	//secondValue, err := strconv.ParseFloat(r.FormValue("Longtitute"), 64)
+	firstValue, err := strconv.ParseFloat(r.FormValue("Latitude"),64)
+	secondValue, err := strconv.ParseFloat(r.FormValue("Longtitute"),64)
 	//thirdValue:= r.FormValue("westLongditude")
 	//fourthValue := r.FormValue("eastLongditude")
 	// and use that context to create a new http client
@@ -159,7 +181,16 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 */
  //scalabilitytest-183012
 
- 	latLon := UTM.LatLon{50.77535, 6.08389}
+ 
+ //fmt.Printf("latfirst: %f",firstValue)
+ 	latLon := UTM.LatLon{firstValue, secondValue}
+
+	MGRS := makeMGRS(firstValue, secondValue) 
+	fmt.Printf("MGRS: %s ",MGRS)
+	MGRSq := strings.Replace(MGRS," ", "", -1)
+
+	MGRSs := strings.Split(MGRS, " ")
+	fmt.Printf("MGRSq: = %s",MGRSq)
 
 	result, err := latLon.FromLatLon()
 	if err != nil {
@@ -174,14 +205,26 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 			result.ZoneLetter,
 		)
 	
-	test := "26.2199863395"
+	
+/*
+	ScopeDatastore := fmt.Sprintf("http://legallandconverter.com/cgi-bin/android5c.cgi?username=DEVELOPX&password=TEST1234&latitude=%f&longitude=%f&cmd=mgrsrev1",firstValue,secondValue) 
+		
+
+		res, err := http.Get(ScopeDatastore)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
+			return
+		}
+		fmt.Println("MGRS: ", ioutil.ReadAll(res.Body))
+*/
+	//test := "26.2199863395"
 	client, err := bigquery.NewClient(ctx, "scalabilitytest-183012")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	query := fmt.Sprintf("SELECT granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE north_lat = %s LIMIT 1000",test)
-	
+	query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE mgrs_tile = '%s' LIMIT 1000", MGRSq)
+	//query := fmt.Sprintf("SELECT granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE north_lat = %s LIMIT 1000",test)
 	q := client.Query(query)
 /*
 	job, err := q.Run(ctx)
@@ -251,8 +294,23 @@ AND south_lat = ` + secondValue +`
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		fmt.Println("Granule_id: ", values[0])
-		fmt.Println("Project_id: ", values[1])
+		fmt.Printf("http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/%s/%s/%s/%s/GRANULE/%s/IMG_DATA/",MGRSs[0],MGRSs[1], MGRSs[2], values[1], values[2])
+		
+		/*
+		ScopeDatastore := fmt.Sprintf("http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/%s/%s/%s/%s/GRANULE/%s/IMG_DATA/",MGRS[0],MGRS[1], MGRS[2], values[0], values[1])
+		
+		// now we can use that http client as before
+		res, err := http.Get(ScopeDatastore)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
+			return
+		}
+		fmt.Printf("done")
+		fmt.Println(ioutil.ReadAll(res.Body))
+		*/
+		
+		//fmt.Println("Granule_id: ", values[0])
+		//fmt.Println("Project_id: ", values[1])
 
 		// print out project_id + granule_id trim off unwanted string, then make a call to GCS api:
 		//"https://www.googleapis.com/storage/v1/b/gcp-public-data-sentinel-2/o/tiles%2F01%2FC%2FCV%2FS2A_MSIL1C_20160304T203515_N0201_R085_T01CCV_20160309T000729.SAFE%2FGRANULE%2FS2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_N02.01%2FIMG_DATA%2FS2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_B8A.jp2"
