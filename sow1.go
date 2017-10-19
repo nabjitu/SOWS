@@ -18,14 +18,18 @@ import (
 	"cloud.google.com/go/bigquery"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
+	"cloud.google.com/go/storage"
 	//"golang.org/x/net/context"
 	//"golang.org/x/oauth2/google"
 	//"google.golang.org/api/compute/v1"
 	"github.com/im7mortal/UTM"
 	
 )
-
- 
+/*
+ type Response struct{
+	 Kind string `json:"kind"`
+	 Id string `json:"id"`
+ }*/
 //Add a new item to the viewAll(w, r)
 //Virker!
 /*func addHandler(w http.ResponseWriter, r *http.Request) {
@@ -180,17 +184,41 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 	}
 */
  //scalabilitytest-183012
+	clientstorage, err := storage.NewClient(ctx,
+    "gcp-public-data-sentinel-2", option.WithServiceAccountFile("mnt/c/Users/Bikse/Downloads/scalabilitytest-93bcaa8b4e76.json"))
+if err != nil {
+    // TODO: handle error.
+}
 
+	itt := clientstorage.Bucket("gcp-public-data-sentinel-2").Objects(ctx, nil)
+	for {
+		objAttrs, err := itt.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			// TODO: Handle error.
+		}
+		fmt.Println(objAttrs)
+	}
+
+	/*
+	objAttrs, err := clientstorage.Bucket("gcp-public-data-sentinel-2").Object("tiles/01/C/CV/S2A_MSIL1C_20160304T203515_N0201_R085_T01CCV_20160309T000729.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_N02.01/IMG_DATA/S2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_B8A.jp2").Attrs(ctx)
+	if err != nil {
+		// TODO: handle error.
+	}
+	fmt.Println(objAttrs)
+*/
  
  //fmt.Printf("latfirst: %f",firstValue)
  	latLon := UTM.LatLon{firstValue, secondValue}
 
 	MGRS := makeMGRS(firstValue, secondValue) 
-	fmt.Printf("MGRS: %s ",MGRS)
+	//fmt.Printf("MGRS: %s ",MGRS)
 	MGRSq := strings.Replace(MGRS," ", "", -1)
 
-	MGRSs := strings.Split(MGRS, " ")
-	fmt.Printf("MGRSq: = %s",MGRSq)
+	//MGRSs := strings.Split(MGRS, " ")
+	//fmt.Printf("MGRSq: = %s",MGRSq)
 
 	result, err := latLon.FromLatLon()
 	if err != nil {
@@ -226,54 +254,8 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 	query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE mgrs_tile = '%s' LIMIT 1000", MGRSq)
 	//query := fmt.Sprintf("SELECT granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE north_lat = %s LIMIT 1000",test)
 	q := client.Query(query)
-/*
-	job, err := q.Run(ctx)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	
-	jobID := job.ID()
-	fmt.Printf("The job ID is %s\n", jobID)
-	
-	
-	job, err = client.JobFromID(ctx, jobID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	
-	// Execute the query.
-	it, err := job.Read(ctx)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	// Iterate through the results.
-	for {
-		var values []bigquery.Value
-		err := it.Next(&values)
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		fmt.Println(values)
-	}
-/*
-	query := client.Query(
-		`SELECT mgrs_tile
-			FROM [bigquery-public-data:cloud_storage_geo_index.sentinel_2_index]
-			WHERE north_lat = 26.2199863395 LIMIT 1000`)
 
-
-/*
-AND south_lat = ` + secondValue +`
-			AND west_lon = ` + thirdValue +`
-			AND east_lon = ` + fourthValue +`
-*/
+	
 
 	// Execute the query.
 	it, err := q.Read(ctx)
@@ -294,20 +276,59 @@ AND south_lat = ` + secondValue +`
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		fmt.Printf("http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/%s/%s/%s/%s/GRANULE/%s/IMG_DATA/",MGRSs[0],MGRSs[1], MGRSs[2], values[1], values[2])
+		url := fmt.Sprintf("%s",values[0])
+		prefixbucket := strings.Replace(url, "gs://", "", 1)
+		bucketsplit := strings.Split(prefixbucket,"/")
+		bucket := fmt.Sprintf("%s",bucketsplit[0])
+		resUrl := strings.Replace(prefixbucket,bucket+"/","",1)
+
+
+		//fmt.Println(bucket)
+		//fmt.Println(resUrl)
+
+		//fmt.Printf("https://www.googleapis.com/storage/v1/b/%s/o/%s/GRANULE/%s/IMG_DATA/",bucket,resUrl, values[1])
+		ScopeDatastore := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o/%s/GRANULE/%s/IMG_DATA/",bucket,resUrl, values[1])
+		fmt.Sprintf("%s",ScopeDatastore)
+		//fmt.Printf("will it work? : %s", urlsplit)
+		 //fmt.Sprintf("http://storage.googleapis.com/%s/GRANULE/%s/IMG_DATA/",urlsplit, values[1])
 		
-		/*
-		ScopeDatastore := fmt.Sprintf("http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/%s/%s/%s/%s/GRANULE/%s/IMG_DATA/",MGRS[0],MGRS[1], MGRS[2], values[0], values[1])
+		
+		//ScopeDatastore := fmt.Sprintf("http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/%s/%s/%s/%s/GRANULE/%s/IMG_DATA/",MGRS[0],MGRS[1], MGRS[2], values[0], values[1])
 		
 		// now we can use that http client as before
-		res, err := http.Get(ScopeDatastore)
+		/*storageclient, err := storage.NewClient(ctx)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
 			return
 		}
-		fmt.Printf("done")
-		fmt.Println(ioutil.ReadAll(res.Body))
-		*/
+		
+		it := storageclient.Bucket(bucket).Objects(ctx, nil)
+		for {
+			attrs, err := it.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				fmt.Println("uuups")
+			}
+			fmt.Fprintln(w, attrs.Name)
+		}
+		// [END storage_list_files]
+		
+*/
+
+/*
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			panic (err.Error())
+		}
+		responsejson := string(body)
+		fmt.Printf("json? : %s ",responsejson)
+*/
+
+
+		//fmt.Println(ioutil.ReadAll(res.Body))
+		
 		
 		//fmt.Println("Granule_id: ", values[0])
 		//fmt.Println("Project_id: ", values[1])
