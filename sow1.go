@@ -29,25 +29,35 @@ import (
 //JSON struct, når vi får et JSON response vil vi gerne lave det om til et object vi kan manipulere og trække bestmte fields ud af, som vi kan returnere.
 type JsonResponse struct {
 	Kind  string `json:"kind"`
-	Items []struct {
-		Kind                    string    `json:"kind"`
-		ID                      string    `json:"id"`
-		SelfLink                string    `json:"selfLink"`
-		Name                    string    `json:"name"`
-		Bucket                  string    `json:"bucket"`
-		Generation              string    `json:"generation"`
-		Metageneration          string    `json:"metageneration"`
-		ContentType             string    `json:"contentType"`
-		TimeCreated             time.Time `json:"timeCreated"`
-		Updated                 time.Time `json:"updated"`
-		StorageClass            string    `json:"storageClass"`
-		TimeStorageClassUpdated time.Time `json:"timeStorageClassUpdated"`
-		Size                    string    `json:"size"`
-		Md5Hash                 string    `json:"md5Hash"`
-		MediaLink               string    `json:"mediaLink"`
-		Crc32C                  string    `json:"crc32c"`
-		Etag                    string    `json:"etag"`
-	} `json:"items"`
+	Items []Item 
+}
+
+type Item struct{
+	Kind                    string    `json:"kind"`
+	ID                      string    `json:"id"`
+	SelfLink                string	  `json:"selfLink"`
+	Name                    string    `json:"name"`
+	Bucket                  string    `json:"bucket"`
+	Generation              string    `json:"generation"`
+	Metageneration          string    `json:"metageneration"`
+	ContentType             string    `json:"contentType"`
+	TimeCreated             time.Time `json:"timeCreated"`
+	Updated                 time.Time `json:"updated"`
+	StorageClass            string    `json:"storageClass"`
+	TimeStorageClassUpdated time.Time `json:"timeStorageClassUpdated"`
+	Size                    string    `json:"size"`
+	Md5Hash                 string    `json:"md5Hash"`
+	MediaLink               string    `json:"mediaLink"`
+	Crc32C                  string    `json:"crc32c"`
+	Etag                    string    `json:"etag"`
+}
+/*
+type ReturnJson struct{
+	ImageLinks				[]ImageLink	
+}
+*/
+type ImageLink struct{
+	Link 	string	`json:"link`
 }
 //Add a new item to the viewAll(w, r)
 //Virker!
@@ -200,8 +210,7 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 	//Opret forbindelse til Bigquery
 	client, err := bigquery.NewClient(ctx, "scalabilitytest-183012")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		panic (err.Error())
 	}
 	//Lav Bigquery query der finder info udfra MGRS
 	query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE mgrs_tile = '%s' LIMIT 1000", MGRSq)
@@ -209,15 +218,16 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 	q := client.Query(query)
 
 	// Data structure til at håndtere Json fra Google API
-	var jstruct []JsonResponse
-	var resFinal []string
+	
+	var resFinal []byte
+	//resFinal := make([]string, "")
+
 
 	// Execute the query.
 	it, err := q.Read(ctx)
 	if err != nil {
 		fmt.Println(" no go: failed at read query")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		panic (err.Error())
 	}
 	// Iterate through the results.
 	for {
@@ -228,8 +238,7 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 		}
 		if err != nil {
 			fmt.Println(" no go : failed at itr")
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			panic (err.Error())
 		}
 		url := fmt.Sprintf("%s",values[0])
 		prefixbucket := strings.Replace(url, "gs://", "", 1)
@@ -243,10 +252,9 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 		//Kald til Google Storage API
 		res, err := defclient.Get(ScopeDatastore)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
-			return
+			panic (err.Error())
 		}
-		fmt.Println("done")
+		//fmt.Println("done")
 		
 		
 		//Behandler API response fra Google Storage
@@ -255,41 +263,23 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 			panic (err.Error())
 		}
 		
+		var jstruct JsonResponse
 		json.Unmarshal(body, &jstruct)
+		length := len(jstruct.Items)
 
-		//fmt.Printf("json? : %s ",responsejson)
-		resFinal = append(resFinal, jstruct.items.selfLink)
+		for i := 0; i < length; i++ {
+			t := &ImageLink{Link:jstruct.Items[i].SelfLink}
+			b, err := json.Marshal(t)
+			if err != nil {
+				panic (err.Error())
+			}
+			//fmt.Println(string(b))
+			resFinal = append(resFinal,b...)
+		}
 
-
-
-		//fmt.Println(ioutil.ReadAll(res.Body))
-		
-		
-		//fmt.Println("Granule_id: ", values[0])
-		//fmt.Println("Project_id: ", values[1])
-
-		// print out project_id + granule_id trim off unwanted string, then make a call to GCS api:
-		//"https://www.googleapis.com/storage/v1/b/gcp-public-data-sentinel-2/o/tiles%2F01%2FC%2FCV%2FS2A_MSIL1C_20160304T203515_N0201_R085_T01CCV_20160309T000729.SAFE%2FGRANULE%2FS2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_N02.01%2FIMG_DATA%2FS2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_B8A.jp2"
-		// call function instead of println, that takes above params and makes a call to the GCS api just like below
 	}
-	fmt.Printf("json: %s ",resFinal)
+
 	
-	/*
-	//Lav url
-	url := "http://storage.googleapis.com/"
-	bucketName := "gcp-public-data-sentinel-2"
-	objectName := "/tiles/01/C/CV/S2A_MSIL1C_20151221T205519_N0201_R028_T01CCV_20160329T181515.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_N02.01/IMG_DATA/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_B02.jp2"
-	ScopeDatastore := url + bucketName + objectName
-				  "/tiles/12/R/VP/S2A_MSIL1C_20160207T180404_N0201_R141_T12RVP_20160208T025227.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_MPS__20160914T225212_A006430_T12RVP_N02.04/IMG_DATA/
-	//lav query
-	//q :=
-
-	// now we can use that http client as before
-	res, err := client.Get(ScopeDatastore)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
-		return
-	}
-	fmt.Println(ioutil.ReadAll(res.Body))
-	*/
+	//fmt.Printf("json: %s",resFinal)
+	fmt.Fprintf(w, "Json: %s", resFinal)
 }
