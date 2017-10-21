@@ -155,7 +155,7 @@ func makeMGRS(lat float64, long float64) string {
 		}
 		
 		
-		zone := result.ZoneNumber)
+		zone := result.ZoneNumber
 		band := result.ZoneLetter
 
 		col := int(math.Floor(result.Easting / 100000))
@@ -254,10 +254,9 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic (err.Error())
 		}
-		err := json.Unmarshal(body, &jstruct)
-		if err != nil {
-			fmt.Println("error:", err)
-		}
+		
+		json.Unmarshal(body, &jstruct)
+
 		//fmt.Printf("json? : %s ",responsejson)
 		resFinal = append(resFinal, jstruct.items.selfLink)
 
