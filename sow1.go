@@ -1,13 +1,14 @@
 package main
 
 import (
-	//"encoding/json"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	//"os"
 	"math"
 	"strings"
+	"time"
 
 	//"google.golang.org/appengine"
 	//"google.golang.org/appengine/datastore"
@@ -18,18 +19,36 @@ import (
 	"cloud.google.com/go/bigquery"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
-	"cloud.google.com/go/storage"
-	//"golang.org/x/net/context"
+	//"cloud.google.com/go/storage"
 	//"golang.org/x/oauth2/google"
 	//"google.golang.org/api/compute/v1"
 	"github.com/im7mortal/UTM"
 	
 )
-/*
- type Response struct{
-	 Kind string `json:"kind"`
-	 Id string `json:"id"`
- }*/
+
+//JSON struct, når vi får et JSON response vil vi gerne lave det om til et object vi kan manipulere og trække bestmte fields ud af, som vi kan returnere.
+type JsonResponse struct {
+	Kind  string `json:"kind"`
+	Items []struct {
+		Kind                    string    `json:"kind"`
+		ID                      string    `json:"id"`
+		SelfLink                string    `json:"selfLink"`
+		Name                    string    `json:"name"`
+		Bucket                  string    `json:"bucket"`
+		Generation              string    `json:"generation"`
+		Metageneration          string    `json:"metageneration"`
+		ContentType             string    `json:"contentType"`
+		TimeCreated             time.Time `json:"timeCreated"`
+		Updated                 time.Time `json:"updated"`
+		StorageClass            string    `json:"storageClass"`
+		TimeStorageClassUpdated time.Time `json:"timeStorageClassUpdated"`
+		Size                    string    `json:"size"`
+		Md5Hash                 string    `json:"md5Hash"`
+		MediaLink               string    `json:"mediaLink"`
+		Crc32C                  string    `json:"crc32c"`
+		Etag                    string    `json:"etag"`
+	} `json:"items"`
+}
 //Add a new item to the viewAll(w, r)
 //Virker!
 /*func addHandler(w http.ResponseWriter, r *http.Request) {
@@ -122,17 +141,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func makeMGRS(lat float64, long float64) string {
 	
-	fmt.Printf("lat : %f",lat)
-	fmt.Printf("long : %f", long)
-	
-	//Mgrs_latbands := `CDEFGHIJKLMNPQRSTUVWXX`
-	//latbands := []rune(Mgrs_latbands)
+//Function der laver LAT&LONG om til MGRS Koordinater
 
 	Mgrs_e100k := [3]string{`ABCDEFGH`, `JKLMNPQR`, `STUVWXYZ`}
-	//e100k := []rune(Mgrs_e100k)
 
 	Mgrs_n100k := [2]string{`ABCDEFGHJKLMNPQRSTUV`, `FGHJKLMNPQRSTUVABCDE`}
-	//n100k := []rune(Mgrs_n100k)
 
 	latLon := UTM.LatLon{lat, long}
 	
@@ -141,18 +154,9 @@ func makeMGRS(lat float64, long float64) string {
 			panic(err.Error())
 		}
 		
-			/*fmt.Printf(
-				"Easting: %f; Northing: %f; ZoneNumber: %d; ZoneLetter: %s;",
-				result.Easting,
-				result.Northing,
-				result.ZoneNumber,
-				result.ZoneLetter,
-			)*/
 		
-		zone := result.ZoneNumber
-		//fmt.Printf("lat: %f",lat)
-		//fmt.Printf("math: %f",math.Floor(lat/8.0+10.0))
-		band := result.ZoneLetter//latbands[int(math.Floor(lat/8.0+10.0))]
+		zone := result.ZoneNumber)
+		band := result.ZoneLetter
 
 		col := int(math.Floor(result.Easting / 100000))
 		e100k := Mgrs_e100k[(zone-1)%3]
@@ -162,63 +166,24 @@ func makeMGRS(lat float64, long float64) string {
 		n100k := Mgrs_n100k[(zone-1)%2]
 		n100krow := n100k[row]
 
-		//fmt.Printf("%d %s %c%c",zone, band, e100kcol, n100krow)
 		MGRS := fmt.Sprintf("%d %s %c%c",zone, band, e100kcol, n100krow)
 		return MGRS
 }
 
+
 func askBigQuery(w http.ResponseWriter, r *http.Request) {
 	firstValue, err := strconv.ParseFloat(r.FormValue("Latitude"),64)
 	secondValue, err := strconv.ParseFloat(r.FormValue("Longtitute"),64)
-	//thirdValue:= r.FormValue("westLongditude")
-	//fourthValue := r.FormValue("eastLongditude")
-	// and use that context to create a new http client
-	//client := http.DefaultClient
-	// "bigquery-public-data:cloud_storage_geo_index.sentinel_2_index"
-	//proj := os.Getenv("GOOGLE_CLOUD_PROJECT")
+
 	ctx := context.Background()
-	//fmt.Println(proj)
-/*	tokenSource, err := google.DefaultTokenSource(Oauth2.NoContext, bigquery.BigqueryScope)
-	if err != nil {
-		log.Fatalf("Unable to acquire token source: %v", err)
-	}
-*/
- //scalabilitytest-183012
-	clientstorage, err := storage.NewClient(ctx,
-    "gcp-public-data-sentinel-2", option.WithServiceAccountFile("mnt/c/Users/Bikse/Downloads/scalabilitytest-93bcaa8b4e76.json"))
-if err != nil {
-    // TODO: handle error.
-}
-
-	itt := clientstorage.Bucket("gcp-public-data-sentinel-2").Objects(ctx, nil)
-	for {
-		objAttrs, err := itt.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			// TODO: Handle error.
-		}
-		fmt.Println(objAttrs)
-	}
-
-	/*
-	objAttrs, err := clientstorage.Bucket("gcp-public-data-sentinel-2").Object("tiles/01/C/CV/S2A_MSIL1C_20160304T203515_N0201_R085_T01CCV_20160309T000729.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_N02.01/IMG_DATA/S2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_B8A.jp2").Attrs(ctx)
-	if err != nil {
-		// TODO: handle error.
-	}
-	fmt.Println(objAttrs)
-*/
- 
- //fmt.Printf("latfirst: %f",firstValue)
+	defclient := http.DefaultClient
+	//UTM Koordinater fra LAT&LONG koordinater
  	latLon := UTM.LatLon{firstValue, secondValue}
-
+	// Lav MGRS koordinater fra LAT&LONG koordinater
 	MGRS := makeMGRS(firstValue, secondValue) 
-	//fmt.Printf("MGRS: %s ",MGRS)
-	MGRSq := strings.Replace(MGRS," ", "", -1)
 
-	//MGRSs := strings.Split(MGRS, " ")
-	//fmt.Printf("MGRSq: = %s",MGRSq)
+	//clean up string for use
+	MGRSq := strings.Replace(MGRS," ", "", -1)
 
 	result, err := latLon.FromLatLon()
 	if err != nil {
@@ -232,30 +197,20 @@ if err != nil {
 			result.ZoneNumber,
 			result.ZoneLetter,
 		)
-	
-	
-/*
-	ScopeDatastore := fmt.Sprintf("http://legallandconverter.com/cgi-bin/android5c.cgi?username=DEVELOPX&password=TEST1234&latitude=%f&longitude=%f&cmd=mgrsrev1",firstValue,secondValue) 
-		
-
-		res, err := http.Get(ScopeDatastore)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
-			return
-		}
-		fmt.Println("MGRS: ", ioutil.ReadAll(res.Body))
-*/
-	//test := "26.2199863395"
+	//Opret forbindelse til Bigquery
 	client, err := bigquery.NewClient(ctx, "scalabilitytest-183012")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	//Lav Bigquery query der finder info udfra MGRS
 	query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE mgrs_tile = '%s' LIMIT 1000", MGRSq)
-	//query := fmt.Sprintf("SELECT granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE north_lat = %s LIMIT 1000",test)
+	
 	q := client.Query(query)
 
-	
+	// Data structure til at håndtere Json fra Google API
+	var jstruct []JsonResponse
+	var resFinal []string
 
 	// Execute the query.
 	it, err := q.Read(ctx)
@@ -282,49 +237,30 @@ if err != nil {
 		bucket := fmt.Sprintf("%s",bucketsplit[0])
 		resUrl := strings.Replace(prefixbucket,bucket+"/","",1)
 
+		//Query til Google Storage API
+		ScopeDatastore := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?prefix=%s/GRANULE/%s/IMG_DATA",bucket,resUrl, values[1])
 
-		//fmt.Println(bucket)
-		//fmt.Println(resUrl)
-
-		//fmt.Printf("https://www.googleapis.com/storage/v1/b/%s/o/%s/GRANULE/%s/IMG_DATA/",bucket,resUrl, values[1])
-		ScopeDatastore := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o/%s/GRANULE/%s/IMG_DATA/",bucket,resUrl, values[1])
-		fmt.Sprintf("%s",ScopeDatastore)
-		//fmt.Printf("will it work? : %s", urlsplit)
-		 //fmt.Sprintf("http://storage.googleapis.com/%s/GRANULE/%s/IMG_DATA/",urlsplit, values[1])
-		
-		
-		//ScopeDatastore := fmt.Sprintf("http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/%s/%s/%s/%s/GRANULE/%s/IMG_DATA/",MGRS[0],MGRS[1], MGRS[2], values[0], values[1])
-		
-		// now we can use that http client as before
-		/*storageclient, err := storage.NewClient(ctx)
+		//Kald til Google Storage API
+		res, err := defclient.Get(ScopeDatastore)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
 			return
 		}
+		fmt.Println("done")
 		
-		it := storageclient.Bucket(bucket).Objects(ctx, nil)
-		for {
-			attrs, err := it.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				fmt.Println("uuups")
-			}
-			fmt.Fprintln(w, attrs.Name)
-		}
-		// [END storage_list_files]
 		
-*/
-
-/*
+		//Behandler API response fra Google Storage
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			panic (err.Error())
 		}
-		responsejson := string(body)
-		fmt.Printf("json? : %s ",responsejson)
-*/
+		err := json.Unmarshal(body, &jstruct)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+		//fmt.Printf("json? : %s ",responsejson)
+		resFinal = append(resFinal, jstruct.items.selfLink)
+
 
 
 		//fmt.Println(ioutil.ReadAll(res.Body))
@@ -337,6 +273,8 @@ if err != nil {
 		//"https://www.googleapis.com/storage/v1/b/gcp-public-data-sentinel-2/o/tiles%2F01%2FC%2FCV%2FS2A_MSIL1C_20160304T203515_N0201_R085_T01CCV_20160309T000729.SAFE%2FGRANULE%2FS2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_N02.01%2FIMG_DATA%2FS2A_OPER_MSI_L1C_TL_SGS__20160305T043523_A003657_T01CCV_B8A.jp2"
 		// call function instead of println, that takes above params and makes a call to the GCS api just like below
 	}
+	fmt.Printf("json: %s ",resFinal)
+	
 	/*
 	//Lav url
 	url := "http://storage.googleapis.com/"
