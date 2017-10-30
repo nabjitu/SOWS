@@ -1,13 +1,13 @@
 package main
 
 import (
-	"encoding/json"
+	//n"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
+	//n"strconv"
 
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	//n"google.golang.org/appengine"
+	//n"google.golang.org/appengine/datastore"
 	//"google.golang.org/appengine/urlfetch"
 	"io/ioutil"
 
@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/bigquery"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
+	"reflect"
 )
 
 //Add a new item to the viewAll(w, r)
@@ -83,6 +84,7 @@ func main() {
 	//http.HandleFunc("/jsons", decodeHandler)
 	http.ListenAndServe(":9000", nil)
 	http.HandleFunc("/a", askBigQuery)
+	http.HandleFunc("/mgrs", makeMGRS)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +151,7 @@ AND south_lat = ` + secondValue +`
 		}
 		fmt.Println(values)
 	}
-	//Lav url
+	/*//Lav url
 	url := "http://storage.googleapis.com/"
 	bucketName := "gcp-public-data-sentinel-2"
 	objectName := "/tiles/01/C/CV/S2A_MSIL1C_20151221T205519_N0201_R028_T01CCV_20160329T181515.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_N02.01/IMG_DATA/S2A_OPER_MSI_L1C_TL_EPA__20160325T184811_A002599_T01CCV_B02.jp2"
@@ -164,5 +166,27 @@ AND south_lat = ` + secondValue +`
 		http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(ioutil.ReadAll(res.Body))
+	fmt.Println(ioutil.ReadAll(res.Body))*/
+}
+
+func useMgrsApi(w http.ResponseWriter, r *http.Request) (api string){
+	firstValue := r.FormValue("northLatitude")
+	//secondValue := r.FormValue("southLatitute")
+	thirdValue:= r.FormValue("westLongditude")
+	//fourthValue := r.FormValue("eastLongditude")
+
+	//http://legallandconverter.com/cgi-bin/android5c.cgi?username=DEVELOPX&password=TEST1234&latitude=48.00820&longitude=-112.61440&cmd=mgrsrev1
+	api = "http://legallandconverter.com/cgi-bin/android5c.cgi?username=DEVELOPX&password=TEST1234&latitude=" + firstValue + "&longitude=" + thirdValue + "&cmd=mgrsrev1"
+	return
+}
+
+func makeMGRS(w http.ResponseWriter, r *http.Request) /*(result string)*/ {
+	client := http.DefaultClient
+	res, err := client.Get(useMgrsApi(w, r))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not get google: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println(reflect.TypeOf(res))
 }

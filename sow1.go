@@ -121,7 +121,7 @@ func main() {
 	//files := http.FileServer(http.Dir(config.Static)) mux.Handle("/static/", http.StripPrefix("/static/", files))
 	//mux.HandleFunc("/", index)
 
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/h", handler)
 	http.HandleFunc("/a", askBigQuery)
 	//http.HandleFunc("/jsons", decodeHandler)
 	http.ListenAndServe(":9000", nil)

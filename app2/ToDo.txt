@@ -2,3 +2,7 @@ Vi skal gøre sådan så vi på localhost kan give den argumenter i form af "lon
 
 Ud fra det så skal den søge med Google Big query som skal lave et api kald og finde det specifikke billede.
 
+GMT --> MGRS
+
+
+Longtitude og latitude afgrændser UMT hvor MGRS er subcategory.
