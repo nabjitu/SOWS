@@ -350,7 +350,7 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 
 
 				Mgrsarea.Add(MGRSs)
-				f
+				
 
 
 			if fourthValue < secondValue {
