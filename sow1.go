@@ -379,11 +379,15 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	fmt.Println(Mgrsarea)
+	//fmt.Println(Mgrsarea)
 
 
 	
-
+	Mgrsareaslice := Mgrsarea.AsSlice()
+	for i := 0; i< len(Mgrsareaslice); i++{
+		fmt.Println(Mgrsareaslice[i])
+	}
+	
 	/*
 	ctx := context.Background()
 	defclient := http.DefaultClient
@@ -400,7 +404,7 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 	//Lav Bigquery query der finder info udfra MGRS
 
 	for i := 0; i < len(Mgrsarea); i ++ {
-		query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM thisisnice.sentinel_2_index_copy_copy WHERE mgrs_tile = '%s'", Mgrsarea[i])
+		query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM thisisnice.sentinel_2_index_copy_copy WHERE mgrs_tile = '%s'", Mgrsareaslice[i])
 
 		q := client.Query(query)
 
