@@ -305,84 +305,84 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 	//regn 3 og 4 punkt ud
 	//coord 3 = firstvalue + fourth value
 	//coord 4 = thirdvalue + second value
-	var Mgrsarea []string
+	//var Mgrsarea []string
+	Mgrsarea := NewStringSet()
 
 	if firstValue < thirdValue {
-		for i := firstValue; i < thirdValue; i += 0.1 {
-
+		for i := firstValue; i <= thirdValue; i += 0.1 {
+			fmt.Println(i,secondValue)
 			MGRS := makeMGRS(i, secondValue)
 			
 			MGRSs := strings.Replace(MGRS, " ", "", -1)
 
-			if len(Mgrsarea) == 0 {
-				Mgrsarea = append(Mgrsarea, MGRSs)
-			}
-			if MGRSs != Mgrsarea[len(Mgrsarea)-1] {
-				Mgrsarea = append(Mgrsarea, MGRSs)
-			}
+				Mgrsarea.Add(MGRSs)
+				
+
 			if secondValue < fourthValue {
-				for j := secondValue; j < fourthValue; j += 0.1 {
+				for j := secondValue; j <= fourthValue; j += 0.1 {
 					MGRSj := makeMGRS(i, j)
 					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
 					
 
-					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
-						Mgrsarea = append(Mgrsarea, MGRSsj)
-					}
+
+						Mgrsarea.Add(MGRSsj)
+						
+
 				}
 			} else if fourthValue < secondValue {
-				for j := secondValue; j > fourthValue; j -= 0.1 {
+				for j := secondValue; j >= fourthValue; j -= 0.1 {
 					MGRSj := makeMGRS(i, j)
 					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
 					
 
-					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
-						Mgrsarea = append(Mgrsarea, MGRSsj)
-					}
+
+						Mgrsarea.Add(MGRSsj)
+						
 				}
 			}
 		}
 	} else if thirdValue < firstValue {
-		for i := thirdValue; i < firstValue; i += 0.1 {
+		for i := thirdValue; i <= firstValue; i += 0.1 {
 
 			MGRS := makeMGRS(i, fourthValue)
 			
 			MGRSs := strings.Replace(MGRS, " ", "", -1)
 
-			if len(Mgrsarea) == 0 {
-				Mgrsarea = append(Mgrsarea, MGRSs)
-			}
-			if MGRSs != Mgrsarea[len(Mgrsarea)-1] {
-				Mgrsarea = append(Mgrsarea, MGRSs)
-			}
+
+				Mgrsarea.Add(MGRSs)
+				f
+
 
 			if fourthValue < secondValue {
-				for j := fourthValue; j < secondValue; j += 0.1 {
+				for j := fourthValue; j <= secondValue; j += 0.1 {
 					MGRSj := makeMGRS(i, j)
 					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
 					
 
-					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
-						Mgrsarea = append(Mgrsarea, MGRSsj)
-					}
+
+						Mgrsarea.Add(MGRSsj)
+						
 				}
 			} else if secondValue < fourthValue {
-				for j := fourthValue; j > secondValue; j -= 0.1 {
+				for j := fourthValue; j >= secondValue; j -= 0.1 {
 					MGRSj := makeMGRS(i, j)
 					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
 					
 
-					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
-						Mgrsarea = append(Mgrsarea, MGRSsj)
-					}
+
+						Mgrsarea.Add(MGRSsj)
+						
+					
 				}
 			}
 		}
 
 	}
-	for i := 0; i < len(Mgrsarea); i++{
-		fmt.Println(Mgrsarea[i])
-	}
+
+	fmt.Println(Mgrsarea)
+
+
+	
 
 	/*
 	ctx := context.Background()
@@ -466,4 +466,29 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 	}
 	*/
 
+}
+
+type StringSet map[string]bool
+
+func NewStringSet() StringSet {
+	return make(StringSet)
+}
+func (s StringSet) Add(val string) {
+	s[val] = true
+}
+func (s StringSet) AddAll(src StringSet) {
+	for k, _ := range src {
+		s[k] = true
+	}
+}
+func (s StringSet) String() string {
+	return fmt.Sprint(s.AsSlice()) // could be made more efficient if needed
+}
+	
+func (s StringSet) AsSlice() []string {
+	ret := make([]string, 0, len(s))
+	for k, _ := range s {
+		ret = append(ret, k)
+	}
+	return ret
 }
