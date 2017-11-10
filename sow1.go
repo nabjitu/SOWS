@@ -385,16 +385,19 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 	
 	Mgrsareaslice := Mgrsarea.AsSlice()
 	for i := 0; i< len(Mgrsareaslice); i++{
-		fmt.Println(Mgrsareaslice[i])
+		//fmt.Println(Mgrsareaslice[i])
+		go hellos(Mgrsareaslice[i])
+		time.Sleep(1 * time.Second)
 	}
 	
-	/*
+	
+
+}
+func hellos(s string){
+/*
+	
 	ctx := context.Background()
 	defclient := http.DefaultClient
-	//UTM Koordinater fra LAT&LONG koordinater
-	latLon := UTM.LatLon{firstValue, secondValue}
-	// Lav MGRS koordinater fra LAT&LONG koordinater
-	MGRS := makeMGRS(firstValue, secondValue)
 
 	//Opret forbindelse til Bigquery
 	client, err := bigquery.NewClient(ctx, "nabj-178408")
@@ -402,9 +405,8 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 	//Lav Bigquery query der finder info udfra MGRS
-
-	for i := 0; i < len(Mgrsarea); i ++ {
-		query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM thisisnice.sentinel_2_index_copy_copy WHERE mgrs_tile = '%s'", Mgrsareaslice[i])
+	
+		query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM thisisnice.sentinel_2_index_copy_copy WHERE mgrs_tile = '%s'", s)
 
 		q := client.Query(query)
 
@@ -467,9 +469,8 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 			}
 
 		}
-	}
+	fmt.Println(string(resFinal))
 	*/
-
 }
 
 type StringSet map[string]bool
