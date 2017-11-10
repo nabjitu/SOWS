@@ -121,10 +121,12 @@ func main() {
 	//files := http.FileServer(http.Dir(config.Static)) mux.Handle("/static/", http.StripPrefix("/static/", files))
 	//mux.HandleFunc("/", index)
 
-	http.HandleFunc("/h", handler)
+	http.HandleFunc("/", handler)
 	http.HandleFunc("/a", askBigQuery)
+	http.HandleFunc("/area", getArea)	
 	//http.HandleFunc("/jsons", decodeHandler)
 	http.ListenAndServe(":9000", nil)
+	
 	
 }
 
@@ -157,7 +159,7 @@ func makeMGRS(lat float64, long float64) string {
 
 	Mgrs_n100k := [2]string{`ABCDEFGHJKLMNPQRSTUV`, `FGHJKLMNPQRSTUVABCDE`}
 
-	latLon := UTM.LatLon{lat, long}
+	latLon := UTM.LatLon{Latitude: lat, Longitude: long}
 	
 		result, err := latLon.FromLatLon()
 		if err != nil {
@@ -208,12 +210,12 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 			result.ZoneLetter,
 		)
 	//Opret forbindelse til Bigquery
-	client, err := bigquery.NewClient(ctx, "scalabilitytest-183012")
+	client, err := bigquery.NewClient(ctx, "bigquery-public-data")
 	if err != nil {
 		panic (err.Error())
 	}
 	//Lav Bigquery query der finder info udfra MGRS
-	query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM testgeoindex.sentinel_2_index_copy WHERE mgrs_tile = '%s' LIMIT 1000", MGRSq)
+	query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM cloud_storage_geo_index.sentinel_2_index WHERE mgrs_tile = '%s'", MGRSq)
 	
 	q := client.Query(query)
 
@@ -276,10 +278,192 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 			//fmt.Println(string(b))
 			resFinal = append(resFinal,b...)
 		}
-
+		
 	}
 
 	
 	//fmt.Printf("json: %s",resFinal)
 	fmt.Fprintf(w, "Json: %s", resFinal)
+}
+
+func getArea(w http.ResponseWriter, r *http.Request) {
+	firstValue, err := strconv.ParseFloat(r.FormValue("Latitude"), 64)
+	secondValue, err := strconv.ParseFloat(r.FormValue("Longtitute"), 64)
+	thirdValue, err := strconv.ParseFloat(r.FormValue("Latitude2"), 64)
+	fourthValue, err := strconv.ParseFloat(r.FormValue("Longtitute2"), 64)
+	if err != nil {
+        // handle error
+	}
+	
+	//MGRS1 := makeMGRS(firstValue, secondValue)
+
+	//MGRS2 := makeMGRS(thirdValue, fourthValue)
+
+	//fmt.Println(MGRS1)
+	//fmt.Println(MGRS2)
+	
+	//regn 3 og 4 punkt ud
+	//coord 3 = firstvalue + fourth value
+	//coord 4 = thirdvalue + second value
+	var Mgrsarea []string
+
+	if firstValue < thirdValue {
+		for i := firstValue; i < thirdValue; i += 0.1 {
+
+			MGRS := makeMGRS(i, secondValue)
+			
+			MGRSs := strings.Replace(MGRS, " ", "", -1)
+
+			if len(Mgrsarea) == 0 {
+				Mgrsarea = append(Mgrsarea, MGRSs)
+			}
+			if MGRSs != Mgrsarea[len(Mgrsarea)-1] {
+				Mgrsarea = append(Mgrsarea, MGRSs)
+			}
+			if secondValue < fourthValue {
+				for j := secondValue; j < fourthValue; j += 0.1 {
+					MGRSj := makeMGRS(i, j)
+					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
+					
+
+					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
+						Mgrsarea = append(Mgrsarea, MGRSsj)
+					}
+				}
+			} else if fourthValue < secondValue {
+				for j := secondValue; j > fourthValue; j -= 0.1 {
+					MGRSj := makeMGRS(i, j)
+					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
+					
+
+					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
+						Mgrsarea = append(Mgrsarea, MGRSsj)
+					}
+				}
+			}
+		}
+	} else if thirdValue < firstValue {
+		for i := thirdValue; i < firstValue; i += 0.1 {
+
+			MGRS := makeMGRS(i, fourthValue)
+			
+			MGRSs := strings.Replace(MGRS, " ", "", -1)
+
+			if len(Mgrsarea) == 0 {
+				Mgrsarea = append(Mgrsarea, MGRSs)
+			}
+			if MGRSs != Mgrsarea[len(Mgrsarea)-1] {
+				Mgrsarea = append(Mgrsarea, MGRSs)
+			}
+
+			if fourthValue < secondValue {
+				for j := fourthValue; j < secondValue; j += 0.1 {
+					MGRSj := makeMGRS(i, j)
+					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
+					
+
+					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
+						Mgrsarea = append(Mgrsarea, MGRSsj)
+					}
+				}
+			} else if secondValue < fourthValue {
+				for j := fourthValue; j > secondValue; j -= 0.1 {
+					MGRSj := makeMGRS(i, j)
+					MGRSsj := strings.Replace(MGRSj, " ", "", -1)
+					
+
+					if MGRSsj != Mgrsarea[len(Mgrsarea)-1] {
+						Mgrsarea = append(Mgrsarea, MGRSsj)
+					}
+				}
+			}
+		}
+
+	}
+	for i := 0; i < len(Mgrsarea); i++{
+		fmt.Println(Mgrsarea[i])
+	}
+
+	/*
+	ctx := context.Background()
+	defclient := http.DefaultClient
+	//UTM Koordinater fra LAT&LONG koordinater
+	latLon := UTM.LatLon{firstValue, secondValue}
+	// Lav MGRS koordinater fra LAT&LONG koordinater
+	MGRS := makeMGRS(firstValue, secondValue)
+
+	//Opret forbindelse til Bigquery
+	client, err := bigquery.NewClient(ctx, "nabj-178408")
+	if err != nil {
+		panic(err.Error())
+	}
+	//Lav Bigquery query der finder info udfra MGRS
+
+	for i := 0; i < len(Mgrsarea); i ++ {
+		query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM thisisnice.sentinel_2_index_copy_copy WHERE mgrs_tile = '%s'", Mgrsarea[i])
+
+		q := client.Query(query)
+
+		// Data structure til at håndtere Json fra Google API
+
+		var resFinal []byte
+		//resFinal := make([]string, "")
+
+		// Execute the query.
+		it, err := q.Read(ctx)
+		if err != nil {
+			fmt.Println(" no go: failed at read query")
+			panic(err.Error())
+		}
+		// Iterate through the results.
+		for {
+			var values []bigquery.Value
+			err := it.Next(&values)
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				fmt.Println(" no go : failed at itr")
+				panic(err.Error())
+			}
+			url := fmt.Sprintf("%s", values[0])
+			prefixbucket := strings.Replace(url, "gs://", "", 1)
+			bucketsplit := strings.Split(prefixbucket, "/")
+			bucket := fmt.Sprintf("%s", bucketsplit[0])
+			resUrl := strings.Replace(prefixbucket, bucket+"/", "", 1)
+
+			//Query til Google Storage API
+			ScopeDatastore := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?prefix=%s/GRANULE/%s/IMG_DATA", bucket, resUrl, values[1])
+
+			//Kald til Google Storage API
+			res, err := defclient.Get(ScopeDatastore)
+			if err != nil {
+				panic(err.Error())
+			}
+			//fmt.Println("done")
+
+			//Behandler API response fra Google Storage
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				panic(err.Error())
+			}
+
+			var jstruct JsonResponse
+			json.Unmarshal(body, &jstruct)
+			length := len(jstruct.Items)
+
+			for i := 0; i < length; i++ {
+				t := &ImageLink{Link: jstruct.Items[i].SelfLink}
+				b, err := json.Marshal(t)
+				if err != nil {
+					panic(err.Error())
+				}
+				//fmt.Println(string(b))
+				resFinal = append(resFinal, b...)
+			}
+
+		}
+	}
+	*/
+
 }
