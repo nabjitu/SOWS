@@ -287,6 +287,9 @@ func askBigQuery(w http.ResponseWriter, r *http.Request) {
 }
 
 func getArea(w http.ResponseWriter, r *http.Request) {
+
+	start := time.Now()
+
 	firstValue, err := strconv.ParseFloat(r.FormValue("Latitude"), 64)
 	secondValue, err := strconv.ParseFloat(r.FormValue("Longtitute"), 64)
 	thirdValue, err := strconv.ParseFloat(r.FormValue("Latitude2"), 64)
@@ -381,32 +384,40 @@ func getArea(w http.ResponseWriter, r *http.Request) {
 
 	//fmt.Println(Mgrsarea)
 
-
-	
+	c := make(chan string)
 	Mgrsareaslice := Mgrsarea.AsSlice()
 	for i := 0; i< len(Mgrsareaslice); i++{
 		//fmt.Println(Mgrsareaslice[i])
-		go hellos(Mgrsareaslice[i])
+		go hellos(Mgrsareaslice[i], c)
+		s := <- c
+		fmt.Fprintf(w, s)
 		time.Sleep(1 * time.Second)
 	}
-	
-	
+	fmt.Println("done")
+
+	fmt.Println("///////////////BENCHMARK END///////////////////")
+	t := time.Now()
+	elapsed := t.Sub(start)
+	fmt.Println("QUery time was ", elapsed)
+	fmt.Println("///////////////BENCHMARK END///////////////////")
+
 
 }
-func hellos(s string){
-/*
+
+func hellos(s string, c chan string){
+
 	
 	ctx := context.Background()
 	defclient := http.DefaultClient
 
 	//Opret forbindelse til Bigquery
-	client, err := bigquery.NewClient(ctx, "nabj-178408")
+	client, err := bigquery.NewClient(ctx, "sill-179308")
 	if err != nil {
 		panic(err.Error())
 	}
 	//Lav Bigquery query der finder info udfra MGRS
 	
-		query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM thisisnice.sentinel_2_index_copy_copy WHERE mgrs_tile = '%s'", s)
+		query := fmt.Sprintf("SELECT base_url, granule_id, product_id FROM dataset_s.sentinel_2_index_copy WHERE mgrs_tile = '%s'", s)
 
 		q := client.Query(query)
 
@@ -469,8 +480,10 @@ func hellos(s string){
 			}
 
 		}
-	fmt.Println(string(resFinal))
-	*/
+		c <- string(resFinal)
+	//fmt.Println(string(resFinal))
+
+
 }
 
 type StringSet map[string]bool
