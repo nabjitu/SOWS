@@ -54,68 +54,13 @@ type Item struct{
 }
 /*
 type ReturnJson struct{
-	ImageLinks				[]ImageLink	
+	ImageLinks				[]ImageLink
 }
 */
 type ImageLink struct{
 	Link 	string	`json:"link`
 }
-//Add a new item to the viewAll(w, r)
-//Virker!
-/*func addHandler(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Fprintf(w, "Old viewAll(w, r) contained: %v \n", viewAll(w, r))
-	firstValue := r.FormValue("Name")
-	secondValue := r.FormValue("Supermarket")
-	thirdValue, err := strconv.ParseInt(r.FormValue("Price")[0:], 10, 64)
-	if err != nil {
-		fmt.Fprint(w, "Price has to be integer \n")
-	}
-	//-------Datastore-------
-	// create a new App Engine context from the HTTP request.
-	ctx := appengine.NewContext(r)
-
-	p := &Product{Name: firstValue, Supermarket: secondValue, Price: thirdValue}
-
-	// create a new complete key of kind Person and value gopher.
-	key := datastore.NewKey(ctx, "Product", firstValue, 0, nil)
-	// put p in the datastore.
-	key, err = datastore.Put(ctx, key, p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Fprintf(w, "%v was NOT stored!", key)
-		return
-	}
-	fmt.Fprintf(w, "%v was stored i datastore!", key)
-}*/
-
-//Virker
-/*func viewAll(w http.ResponseWriter, r *http.Request) (p []Item) {
-	ctx := appengine.NewContext(r)
-	q := datastore.NewQuery("Product")
-	q = q.Order("Name")
-
-	// and finally execute the query retrieving all values into p.
-	_, err := q.GetAll(ctx, &p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	return p
-}*/
-
-
-/*func decodeHandler(w http.ResponseWriter, r *http.Request) {
-	var p Product
-
-	dec := json.NewDecoder(r.Body)
-	err := dec.Decode(&p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	fmt.Fprintf(w, "Product is %v exist in %v for %v kr.", p.Name, p.Supermarket, p.Price)
-}*/
 
 func main() {
 	//mux := http.NewServeMux()
