@@ -63,6 +63,50 @@ type ImageLink struct{
 
 
 func main() {
+
+	p1   :=   s2.PointFromLatLng(s2.LatLngFromDegrees(54.918,   8.552))
+	p2   :=   s2.PointFromLatLng(s2.LatLngFromDegrees(55.048,   8.471))
+	p3   :=   s2.PointFromLatLng(s2.LatLngFromDegrees(55.481,   12.736))
+	p4   :=   s2.PointFromLatLng(s2.LatLngFromDegrees(54.837,   9.392))
+	p5   :=   s2.PointFromLatLng(s2.LatLngFromDegrees(54.918,   8.552))
+
+	points := []s2.Point{p1, p2, p3, p4, p5}
+
+	fmt.Println("Points: ", points)
+
+	l1   :=   s2.LoopFromPoints(points)
+
+	fmt.Println("l1: ", l1)
+
+	rect   :=   l1.RectBound()
+
+	fmt.Println("rect: ", rect)
+
+	loops   :=   []*s2.Loop{l1}
+
+	fmt.Println("loops: ", loops[0])
+
+	poly   :=   s2.PolygonFromLoops(loops)
+
+	fmt.Println("poly: ", poly.NumEdges())
+
+
+	rc   :=   &s2.RegionCoverer{MaxLevel:   30,   MaxCells:   100}
+	cover   :=   rc.Covering(poly)
+	var   c   s2.Cell
+	var   totalArea   float64
+	totalArea   =   0
+	for   i   :=   0;   i   <   len(cover);   i++   {
+		fmt.Printf("Cell   %v   :   ",   i)
+		c   =   s2.CellFromCellID(cover[i])
+		fmt.Printf("Low:   %v   -   ",   c.RectBound().Lo())
+		fmt.Printf("High:   %v   \n",   c.RectBound().Hi())
+		totalArea   =   totalArea   +   c.RectBound().Area()
+	}
+
+	fmt.Printf("Total   Area   with   multiple   rectangles:   %v",   totalArea)
+
+
 	//mux := http.NewServeMux()
 	//files := http.FileServer(http.Dir(config.Static)) mux.Handle("/static/", http.StripPrefix("/static/", files))
 	//mux.HandleFunc("/", index)
@@ -456,3 +500,6 @@ func (s StringSet) AsSlice() []string {
 	}
 	return ret
 }
+
+
+
