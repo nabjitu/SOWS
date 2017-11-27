@@ -30,12 +30,18 @@ import (
 
 	"github.com/im7mortal/UTM"
 	"github.com/qedus/osmpbf"
+	"github.com/golang/geo/s2"
 )
 
 //JSON struct, når vi får et JSON response vil vi gerne lave det om til et object vi kan manipulere og trække bestmte fields ud af, som vi kan returnere.
 type JsonResponse struct {
 	Kind  string `json:"kind"`
 	Items []Item
+}
+
+type point struct {
+	firstPoint float64
+	secondPoint float64
 }
 
 type Item struct {
@@ -607,14 +613,48 @@ func readBodyFromUrl(w http.ResponseWriter, r *http.Request) {
 		}else {			
 			i++
 		}
-		
-
 	}
+
+	var allPoints []s2.Point
+
+	for i := 0 ; i <= len(points)/2 ; i= i+2 {
+		p1 := s2.PointFromLatLng(s2.LatLngFromDegrees(points[i], points[i+1]))
+		allPoints = append(allPoints, p1)
+		fmt.Println(p1)
+	}
+
+	l1 := s2.LoopFromPoints(allPoints)
+	rect := l1.RectBound()
+	loops := []*s2.Loop{l1}
+	poly := s2.PolygonFromLoops(loops)
+	fmt.Printf("No. of edges %v\n", poly.NumEdges())
+
+	//   one   big   rectangle   bounding   box,   just   to   test
+	rect = poly.RectBound()
+	fmt.Printf("Rect. Lat. Lo: %v \n", rect.Lat.Lo*180.0/math.Pi)
+	fmt.Printf("Rect. Lat. Hi: %v \n", rect.Lat.Hi*180.0/math.Pi)
+	fmt.Printf("Rect. Lng. Lo: %v \n", rect.Lng.Lo*180.0/math.Pi)
+	fmt.Printf("Rect. Lng. Hi: %v \n", rect.Lat.Hi*180.0/math.Pi)
+	fmt.Printf("\nOne Big Rect. Area %v\n\n", rect.Area())
+
+	rc := &s2.RegionCoverer{MaxLevel: 30, MaxCells: 100}
+	cover := rc.Covering(poly)
+	var c s2.Cell
+	var totalArea float64
+	totalArea = 0
+	for i := 0; i < len(cover); i++ {
+		fmt.Printf("Cell %v : ", i)
+		c = s2.CellFromCellID(cover[i])
+		fmt.Printf("Low: %v - ", c.RectBound().Lo())
+		fmt.Printf("High: %v \n", c.RectBound().Hi())
+		totalArea = totalArea + c.RectBound().Area()
+	}
+	fmt.Printf("Total Area with multiple rectangles: %v", totalArea)
 	
 	
 
-	fmt.Println(points)
-	fmt.Println(url)
+	//fmt.Println(points)
+	//fmt.Println(url)
 	fmt.Println(res.Status)
 	//fmt.Println(string(body))
 	//fmt.Printf("%s", temp)
