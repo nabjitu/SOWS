@@ -20,10 +20,10 @@
       <file leaf-file-name="sow1.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sow1.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="241">
-              <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
+            <state relative-caret-position="547">
+              <caret line="520" column="29" lean-forward="false" selection-start-line="520" selection-start-column="29" selection-end-line="520" selection-end-column="29" />
               <folding>
-                <element signature="e#14#604#0" expanded="true" />
+                <element signature="e#14#584#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -34,6 +34,10 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>get</find>
+      <find>print</find>
+      <find>ImageLink</find>
+      <find>SelfLink</find>
+      <find>iou</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="/usr/local/Cellar/go/1.9.1/libexec" />
@@ -121,7 +125,7 @@
       <workItem from="1510520682715" duration="85000" />
       <workItem from="1511337393535" duration="304000" />
       <workItem from="1511337748429" duration="4030000" />
-      <workItem from="1511700492775" duration="3536000" />
+      <workItem from="1511700492775" duration="6922000" />
     </task>
     <task id="LOCAL-00001" summary="Done done">
       <created>1510490085808</created>
@@ -148,7 +152,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="20654000" />
+    <option name="totallyTimeSpent" value="24040000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="20" y="43" width="1400" height="833" extended-state="0" />
@@ -193,7 +197,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#604#0" expanded="true" />
+            <element signature="e#14#584#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -203,7 +207,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#604#0" expanded="true" />
+            <element signature="e#14#584#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -213,7 +217,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#604#0" expanded="true" />
+            <element signature="e#14#584#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -223,7 +227,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#604#0" expanded="true" />
+            <element signature="e#14#584#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -233,7 +237,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#604#0" expanded="true" />
+            <element signature="e#14#584#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -241,10 +245,10 @@
     <entry file="file://$PROJECT_DIR$/sow1test.go" />
     <entry file="file://$PROJECT_DIR$/sow1.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="241">
-          <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
+        <state relative-caret-position="547">
+          <caret line="520" column="29" lean-forward="false" selection-start-line="520" selection-start-column="29" selection-end-line="520" selection-end-column="29" />
           <folding>
-            <element signature="e#14#604#0" expanded="true" />
+            <element signature="e#14#584#0" expanded="true" />
           </folding>
         </state>
       </provider>

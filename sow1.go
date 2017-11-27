@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	//"io"
 	"log"
 	"net/http"
-	"os"
-	"runtime"
+	//"os"
+	//"runtime"
 	"strconv"
 	//"os"
 	"math"
@@ -28,7 +28,7 @@ import (
 	//"google.golang.org/api/compute/v1"
 
 	"github.com/im7mortal/UTM"
-	"github.com/qedus/osmpbf"
+	//"github.com/qedus/osmpbf"
 )
 
 //JSON struct, når vi får et JSON response vil vi gerne lave det om til et object vi kan manipulere og trække bestmte fields ud af, som vi kan returnere.
@@ -64,50 +64,6 @@ type ReturnJson struct{
 */
 type ImageLink struct {
 	Link string `json:"link`
-}
-
-func osmDecoder() {
-	f, err := os.Open("greater-london-140324.osm.pbf")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	d := osmpbf.NewDecoder(f)
-
-	// use more memory from the start, it is faster
-	d.SetBufferSize(osmpbf.MaxBlobSize)
-
-	// start decoding with several goroutines, it is faster
-	err = d.Start(runtime.GOMAXPROCS(-1))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var nc, wc, rc uint64
-	for {
-		if v, err := d.Decode(); err == io.EOF {
-			break
-		} else if err != nil {
-			log.Fatal(err)
-		} else {
-			switch v := v.(type) {
-			case *osmpbf.Node:
-				// Process Node v.
-				nc++
-			case *osmpbf.Way:
-				// Process Way v.
-				wc++
-			case *osmpbf.Relation:
-				// Process Relation v.
-				rc++
-			default:
-				log.Fatalf("unknown type %T\n", v)
-			}
-		}
-	}
-
-	fmt.Printf("Nodes: %d, Ways: %d, Relations: %d\n", nc, wc, rc)
 }
 
 func main() {
@@ -533,25 +489,7 @@ func readBodyFromUrl(w http.ResponseWriter, r *http.Request) {
 	//Tag Body fra URL'en
 
 	url := fmt.Sprintf("")
-	/*
-		if Region == "" {
-			req, err := http.NewRequest("GET", url2, nil)
-			if err != nil {
-				log.Fatalf("could not create request: %v", err)
-			}
 
-		} else if Country == "" && Region == "" {
-			req, err := http.NewRequest("GET", url3, nil)
-			if err != nil {
-				log.Fatalf("could not create request: %v", err)
-			}
-		} else {
-			req, err := http.NewRequest("GET", url1, nil)
-			if err != nil {
-				log.Fatalf("could not create request: %v", err)
-			}
-		}
-	*/
 
 	if Region == "" && Country != "" {
 		url = fmt.Sprintf("http://download.geofabrik.de/%s/%s.poly", Continent, Country)
@@ -572,9 +510,14 @@ func readBodyFromUrl(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("http request failed: %v", err)
 	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		panic(err.Error())
+	}
+
+
 	fmt.Println(url)
-	fmt.Println(res.Status)
-	fmt.Println(res.Body)
-	//fmt.Printf("%s", temp)
+	fmt.Println(string(body))
 	res.Body.Close()
 }
