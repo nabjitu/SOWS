@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b0e39ecc-9e51-4bc8-a20e-24cf164a3845" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sow1.go" afterPath="$PROJECT_DIR$/sow1.go" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -19,16 +20,21 @@
       <file leaf-file-name="sow1.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sow1.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="331">
-              <caret line="93" column="46" lean-forward="false" selection-start-line="93" selection-start-column="44" selection-end-line="93" selection-end-column="46" />
+            <state relative-caret-position="241">
+              <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
               <folding>
-                <element signature="e#14#548#0" expanded="true" />
+                <element signature="e#14#604#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>get</find>
+    </findStrings>
   </component>
   <component name="GOROOT" path="/usr/local/Cellar/go/1.9.1/libexec" />
   <component name="Git.Settings">
@@ -115,7 +121,7 @@
       <workItem from="1510520682715" duration="85000" />
       <workItem from="1511337393535" duration="304000" />
       <workItem from="1511337748429" duration="4030000" />
-      <workItem from="1511700492775" duration="1155000" />
+      <workItem from="1511700492775" duration="3536000" />
     </task>
     <task id="LOCAL-00001" summary="Done done">
       <created>1510490085808</created>
@@ -131,11 +137,18 @@
       <option name="project" value="LOCAL" />
       <updated>1511536350394</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="test">
+      <created>1511703183570</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1511703183570</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="18273000" />
+    <option name="totallyTimeSpent" value="20654000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="20" y="43" width="1400" height="833" extended-state="0" />
@@ -180,7 +193,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#548#0" expanded="true" />
+            <element signature="e#14#604#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -190,7 +203,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#548#0" expanded="true" />
+            <element signature="e#14#604#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -200,7 +213,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#548#0" expanded="true" />
+            <element signature="e#14#604#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -210,7 +223,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#548#0" expanded="true" />
+            <element signature="e#14#604#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -220,7 +233,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#548#0" expanded="true" />
+            <element signature="e#14#604#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -228,10 +241,10 @@
     <entry file="file://$PROJECT_DIR$/sow1test.go" />
     <entry file="file://$PROJECT_DIR$/sow1.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="331">
-          <caret line="93" column="46" lean-forward="false" selection-start-line="93" selection-start-column="44" selection-end-line="93" selection-end-column="46" />
+        <state relative-caret-position="241">
+          <caret line="148" column="0" lean-forward="true" selection-start-line="148" selection-start-column="0" selection-end-line="148" selection-end-column="0" />
           <folding>
-            <element signature="e#14#548#0" expanded="true" />
+            <element signature="e#14#604#0" expanded="true" />
           </folding>
         </state>
       </provider>

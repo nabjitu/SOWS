@@ -9,6 +9,8 @@ import (
 	"math"
 	"strings"
 	"time"
+	"log"
+	"runtime"
 
 	//"google.golang.org/appengine"
 	//"google.golang.org/appengine/datastore"
@@ -24,7 +26,10 @@ import (
 	//"google.golang.org/api/compute/v1"
 	"github.com/im7mortal/UTM"
 	"github.com/golang/geo/s2"
-	
+	"github.com/qedus/osmpbf"
+
+	"os"
+	"io"
 )
 
 //JSON struct, når vi får et JSON response vil vi gerne lave det om til et object vi kan manipulere og trække bestmte fields ud af, som vi kan returnere.
@@ -91,7 +96,7 @@ func main() {
 	fmt.Println("poly: ", poly.NumEdges())
 
 
-	rc   :=   &s2.RegionCoverer{MaxLevel:   30,   MaxCells:   100}
+	rc := &s2.RegionCoverer{MaxLevel: 30, MaxCells: 100}
 	cover   :=   rc.Covering(poly)
 	var   c   s2.Cell
 	var   totalArea   float64
@@ -113,7 +118,8 @@ func main() {
 
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/a", askBigQuery)
-	http.HandleFunc("/area", getArea)	
+	http.HandleFunc("/area", getArea)
+	http.HandleFunc("/area", getArea)
 	//http.HandleFunc("/jsons", decodeHandler)
 	http.ListenAndServe(":9000", nil)
 	
@@ -140,6 +146,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(ioutil.ReadAll(res.Body))
 }
+
 
 func makeMGRS(lat float64, long float64) string {
 	
